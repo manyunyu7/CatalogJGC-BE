@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\Killa;
 use App\Models\User;
 use App\Models\UserAddress;
 use Illuminate\Http\Request;
@@ -9,34 +10,27 @@ use Illuminate\Support\Facades\Auth;
 
 class StaffController extends Controller
 {
+
     public function viewAdminManage()
     {
         $users = User::all();
-        return view('karyawan.manage')->with(compact('users'));
+        return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $users);
     }
 
     public function viewAdminEdit($id)
     {
         $users = User::where('id', '=', $id)->first();
         $address = UserAddress::where('id_user', '=', $users->id)->first();
-        return view('karyawan.edit')->with(compact('users', 'address'));
+        return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', ['users' => $users, 'address' => $address]);
     }
-
-    public function viewAdminCreate()
-    {
-        return view('karyawan.create');
-    }
-
 
     function destroy($id)
     {
         $user = User::findOrFail($id);
         if ($user->delete()) {
-            if (Auth::user()->role == 1) {
-                return back()->with(["success" => "Berhasil Menghapus User $user->name"]);
-            }
+            return Killa::responseSuccessWithMetaAndResult(200, 1, "Successfully deleted user $user->name", []);
         } else {
-            return back()->with(["error" => "Gagal Menghapus User Baru"]);
+            return Killa::responseErrorWithMetaAndResult(400, 0, "Failed to delete user", []);
         }
     }
 
@@ -49,7 +43,6 @@ class StaffController extends Controller
             "user_role" => "required",
         ];
 
-
         $this->validate($request, $validateComponent);
 
         $user = new User();
@@ -59,24 +52,17 @@ class StaffController extends Controller
         $user->password = bcrypt($request->user_password);
         $user->role = ($request->user_role);
 
-
-
-
         if ($user->save()) {
-
             $address = new UserAddress();
             $address->id_user = $user->id;
             $address->address = $request->address;
             $address->save();
 
-            if (Auth::user()->role == 1) {
-                return back()->with(["success" => "Berhasil Menambahkan User Baru"]);
-            }
+            return Killa::responseSuccessWithMetaAndResult(200, 1, "Successfully added new user", []);
         } else {
-            return back()->with(["failed" => "Gagal Menambahkan User Baru"]);
+            return Killa::responseErrorWithMetaAndResult(400, 0, "Failed to add new user", []);
         }
     }
-
 
     function update(Request $request)
     {
@@ -107,13 +93,10 @@ class StaffController extends Controller
             $address->save();
         }
 
-
         if ($user->save()) {
-            if (Auth::user()->role == 1) {
-                return back()->with(["success" => "Berhasil Mengupdate Data User"]);
-            }
+            return Killa::responseSuccessWithMetaAndResult(200, 1, "Successfully updated user data", []);
         } else {
-            return back()->with(["failed" => "Gagal Mengupdate Data User"]);
+            return Killa::responseErrorWithMetaAndResult(400, 0, "Failed to update user data", []);
         }
     }
 }

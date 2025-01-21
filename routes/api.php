@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\StaffController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,6 +38,15 @@ Route::group([
 
 Route::post('cms-auth/login',[AuthController::class,'login']);
 Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 'getUserInfo']);
+
+Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
+    Route::get('manage', [StaffController::class, 'viewAdminManage'])->name('cms-user.manage');
+    Route::get('edit/{id}', [StaffController::class, 'viewAdminEdit'])->name('cms-user.edit');
+    Route::get('create', [StaffController::class, 'viewAdminCreate'])->name('cms-user.create');
+    Route::post('store', [StaffController::class, 'store'])->name('cms-user.store');
+    Route::put('update', [StaffController::class, 'update'])->name('cms-user.update');
+    Route::delete('destroy/{id}', [StaffController::class, 'destroy'])->name('cms-user.destroy');
+});
 
 
 Route::post('auth/register', 'CustomAuthController@register');
