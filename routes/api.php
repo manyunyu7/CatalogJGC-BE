@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AuthController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -32,6 +33,9 @@ Route::group([
     Route::post('/refresh', 'CustomAuthController@refresh');
     Route::any('/user-profile', 'CustomAuthController@me');
 });
+
+
+Route::post('cms-auth/login',[AuthController::class,'login']);
 
 Route::post('auth/register', 'CustomAuthController@register');
 Route::get('auth/check-number', 'StaffController@checkIfNumberRegistered');
