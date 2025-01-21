@@ -10,6 +10,18 @@ use Illuminate\Support\Facades\Validator;
 
 class AuthController extends Controller
 {
+    public function getUserInfo(Request $request)
+    {
+        // Return the authenticated user's information
+        return response()->json([
+            'meta' => [
+                'success' => true,
+                'status' => 200,
+                'message' => 'User information fetched successfully',
+            ],
+            'result' => $request->user(),  // This will return the authenticated user
+        ]);
+    }
 
     public function login(Request $request)
     {

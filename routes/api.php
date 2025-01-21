@@ -36,6 +36,8 @@ Route::group([
 
 
 Route::post('cms-auth/login',[AuthController::class,'login']);
+Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 'getUserInfo']);
+
 
 Route::post('auth/register', 'CustomAuthController@register');
 Route::get('auth/check-number', 'StaffController@checkIfNumberRegistered');
