@@ -2,22 +2,62 @@
 
 namespace App\Http\Controllers;
 
+use App\Helper\Killa;
 use App\Models\MySlider;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class MyProfileSliderController extends Controller
 {
-    public function manageSlider(){
-        $datas = MySlider::orderBy('order')->get();
+    public function manageSlider()
+    {
+        try {
+            $datas = MySlider::orderBy('order')->get();
 
-        $compact = compact('datas');
-        return view('slider.manage')->with($compact);
+            return Killa::responseSuccessWithMetaAndResult(
+                200,
+                200,
+                'Sliders fetched successfully',
+                $datas
+            );
+        } catch (\Exception $e) {
+            return Killa::responseErrorWithMetaAndResult(
+                500,
+                500,
+                'Failed to fetch sliders',
+                ['error' => $e->getMessage()]
+            );
+        }
     }
 
     public function viewEdit($id)
     {
-        $data = MySlider::where('id', '=', $id)->first();
-        return view('slider.edit')->with(compact('data'));
+        try {
+            $data = MySlider::where('id', '=', $id)->first();
+
+            if ($data) {
+                return Killa::responseSuccessWithMetaAndResult(
+                    200,
+                    200,
+                    'Slider data fetched successfully',
+                    $data
+                );
+            }
+
+            return Killa::responseErrorWithMetaAndResult(
+                404,
+                404,
+                'Slider not found',
+                null
+            );
+        } catch (\Exception $e) {
+            return Killa::responseErrorWithMetaAndResult(
+                500,
+                500,
+                'Failed to fetch slider data',
+                ['error' => $e->getMessage()]
+            );
+        }
     }
 
 
@@ -92,47 +132,80 @@ class MyProfileSliderController extends Controller
 
     public function store(Request $request)
     {
-        $object = new MySlider();
-        $object->title = $request->title;
-        $object->description = $request->description;
-        $object->action = $request->action;
-        $object->action_link = $request->action_link;
-        $object->second_action = $request->second_action;
-        $object->second_action_link = $request->second_action_link;
-        $object->order = $request->order;
-        if ($request->hasFile('image')) {
+        // Validate the request
+        $validator = Validator::make($request->all(), [
+            'title' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+            'action' => 'nullable|string|max:255',
+            'action_link' => 'nullable|url',
+            'second_action' => 'nullable|string|max:255',
+            'second_action_link' => 'nullable|url',
+            'order' => 'required|integer',
+            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
 
-            $file = $request->file('image');
-            $extension = $file->getClientOriginalExtension(); // you can also use file name
-            $fileName = time() . '.' . $extension;
-
-            $savePath = "/web_files/slider_image/";
-            $savePathDB = "$savePath$fileName";
-            $path = public_path() . "$savePath";
-            $file->move($path, $fileName);
-
-            $photoPath = $savePathDB;
-            $object->image = $photoPath;
+        if ($validator->fails()) {
+            return Killa::responseErrorWithMetaAndResult(
+                422,
+                422,
+                'Validation errors occurred',
+                $validator->errors()
+            );
         }
 
-        if ($request->hasFile('icon')) {
-            $file = $request->file('icon');
-            $extension = $file->getClientOriginalExtension(); // you can also use file name
-            $fileName = time() . '.' . $extension;
+        try {
+            $object = new MySlider();
+            $object->title = $request->title;
+            $object->description = $request->description;
+            $object->action = $request->action;
+            $object->action_link = $request->action_link;
+            $object->second_action = $request->second_action;
+            $object->second_action_link = $request->second_action_link;
+            $object->order = $request->order;
 
-            $savePath = "/web_files/slider_icon/";
-            $savePathDB = "$savePath$fileName";
-            $path = public_path() . "$savePath";
-            $file->move($path, $fileName);
+            // Handle image upload
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
+                $fileName = time() . '.' . $file->getClientOriginalExtension();
+                $savePath = "/web_files/slider_image/";
+                $path = public_path() . $savePath;
+                $file->move($path, $fileName);
+                $object->image = $savePath . $fileName;
+            }
 
-            $photoPath = $savePathDB;
-            $object->icon = $photoPath;
-        }
+            // Handle icon upload
+            if ($request->hasFile('icon')) {
+                $file = $request->file('icon');
+                $fileName = time() . '.' . $file->getClientOriginalExtension();
+                $savePath = "/web_files/slider_icon/";
+                $path = public_path() . $savePath;
+                $file->move($path, $fileName);
+                $object->icon = $savePath . $fileName;
+            }
 
-        if ($object->save()) {
-            return back()->with(["success" => "Data saved successfully"]);
-        } else {
-            return back()->with(["error" => "Saving process failed"]);
+            if ($object->save()) {
+                return Killa::responseSuccessWithMetaAndResult(
+                    201,
+                    201,
+                    'Slider created successfully',
+                    $object
+                );
+            }
+
+            return Killa::responseErrorWithMetaAndResult(
+                500,
+                500,
+                'Failed to save slider',
+                null
+            );
+        } catch (\Exception $e) {
+            return Killa::responseErrorWithMetaAndResult(
+                500,
+                500,
+                'An error occurred while saving the slider',
+                ['error' => $e->getMessage()]
+            );
         }
     }
 
@@ -140,28 +213,55 @@ class MyProfileSliderController extends Controller
      * Remove the specified resource from storage.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function destroy($id)
     {
-        $data = MySlider::findOrFail($id);
-        $file_path = public_path() . $data->image;
+        try {
+            $data = MySlider::findOrFail($id);
 
+            // Handle image deletion
+            if (!empty($data->image)) {
+                $filePath = public_path($data->image);
 
-        if($data->image!=null || $data->image!=""){
-            if (file_exists($file_path)) {
-                try {
-                    unlink($file_path);
-                } catch (Exception $e) {
-                    // Do Nothing on Exception
+                if (file_exists($filePath)) {
+                    try {
+                        unlink($filePath);
+                    } catch (\Exception $e) {
+                        // Log the exception if needed, but don't stop the process
+                    }
                 }
             }
-        }
 
-        if ($data->delete()) {
-            return back()->with(["success" => "Data deleted successfully"]);
-        } else {
-            return back()->with(["error" => "Delete process failed"]);
+            if ($data->delete()) {
+                return Killa::responseSuccessWithMetaAndResult(
+                    200,
+                    200,
+                    'Data deleted successfully',
+                    null
+                );
+            }
+
+            return Killa::responseErrorWithMetaAndResult(
+                500,
+                500,
+                'Failed to delete data',
+                null
+            );
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return Killa::responseErrorWithMetaAndResult(
+                404,
+                404,
+                'Data not found',
+                null
+            );
+        } catch (\Exception $e) {
+            return Killa::responseErrorWithMetaAndResult(
+                500,
+                500,
+                'An error occurred during deletion',
+                ['error' => $e->getMessage()]
+            );
         }
     }
 }

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\MyProfileSliderController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -46,6 +47,15 @@ Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
     Route::post('store', [StaffController::class, 'store'])->name('cms-user.store');
     Route::put('update', [StaffController::class, 'update'])->name('cms-user.update');
     Route::delete('destroy/{id}', [StaffController::class, 'destroy'])->name('cms-user.destroy');
+});
+
+Route::prefix('slider')->middleware('auth:sanctum')->group(function() {
+    Route::get('manage', [MyProfileSliderController::class, 'manageSlider']);
+    Route::get('edit/{id}', [MyProfileSliderController::class, 'viewEdit']);
+    Route::get('create', [MyProfileSliderController::class, 'viewAdminCreate']);
+    Route::post('store', [MyProfileSliderController::class, 'store']);
+    Route::put('update', [MyProfileSliderController::class, 'update']);
+    Route::delete('destroy/{id}', [MyProfileSliderController::class, 'destroy']);
 });
 
 
