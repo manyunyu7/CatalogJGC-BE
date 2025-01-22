@@ -54,7 +54,7 @@ Route::prefix('slider')->middleware('auth:sanctum')->group(function() {
     Route::get('edit/{id}', [MyProfileSliderController::class, 'viewEdit']);
     Route::get('create', [MyProfileSliderController::class, 'viewAdminCreate']);
     Route::post('store', [MyProfileSliderController::class, 'store']);
-    Route::put('update', [MyProfileSliderController::class, 'update']);
+    Route::post('update', [MyProfileSliderController::class, 'update']);
     Route::delete('destroy/{id}', [MyProfileSliderController::class, 'destroy']);
 });
 

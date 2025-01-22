@@ -5,7 +5,8 @@
 /public/web_files/news/*
 /public/web_files/summernote/*
 /public/web_files/payment_merchant/*
-/public/web_files/truck/*
+/public/web_files/slider_icon/*
+/public/web_files/slider_image/*
 /public/web_files/donasi/*
 /public/web_files/user_donation/*
 /public/web_files/expenses/*
