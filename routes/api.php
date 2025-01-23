@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\MyMainProfileController;
 use App\Http\Controllers\MyProfileSliderController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Http\Request;
@@ -39,6 +40,9 @@ Route::group([
 
 Route::post('cms-auth/login',[AuthController::class,'login']);
 Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 'getUserInfo']);
+
+
+Route::get('/products',[MyMainProfileController::class, 'index']);
 
 Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
     Route::get('manage', [StaffController::class, 'viewAdminManage'])->name('cms-user.manage');
