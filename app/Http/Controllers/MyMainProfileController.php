@@ -57,16 +57,14 @@ class MyMainProfileController extends Controller
 
 
 
+    //fetch all products
     public function index(Request $request)
     {
-        // Cache key for the products
-        $cacheKey = 'products_csaxcxshex12';
-
-        // Check and fetch products from cache or database
-        $products = Cache::remember($cacheKey, 1440, function () {
+        // Cache the fetched categories for 10 minutes (600 seconds)
+        $cacheKey = 'categories_cache';
+        $products = Cache::remember($cacheKey, 600, function () {
             return $this->fetchCategories();
         });
-
 
         // Prepare compacted data
         $compact = compact('products');
@@ -76,11 +74,11 @@ class MyMainProfileController extends Controller
             return $compact;
         }
 
-
         return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $products);
-        // Return view with products
-        return view('catalog.index')->with($compact);
     }
+
+
+
     // Fetch and process categories from the API
     private function fetchCategories()
     {
