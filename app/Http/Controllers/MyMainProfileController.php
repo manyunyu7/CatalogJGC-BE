@@ -1,22 +1,72 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use App\Helper\Killa;
+use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 
 class MyMainProfileController extends Controller
 {
+
+
+    public function show(Request $request, $id)
+    {
+        $productId = $id; // Example product ID
+        $apiUrl = "https://api-web.jakartagardencity.com/product/$productId";
+
+        try {
+            // Initialize Guzzle Client
+            $client = new Client();
+
+            // Make GET Request
+            $response = $client->get($apiUrl);
+            $statusCode = $response->getStatusCode();
+
+            // Parse Response
+            if ($statusCode === 200) {
+                $responseBody = json_decode($response->getBody(), true);
+
+                if (isset($responseBody['data'])) {
+                    // Convert array to a nested object
+                    $product = json_decode(json_encode($responseBody['data']));
+
+                    // Return success response
+                    return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $product);
+                } else {
+                    return Killa::responseErrorWithMetaAndResult(200, 0, 'Invalid response format', $responseBody);
+                }
+            }
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            // Handle 4xx Errors
+            $response = $e->getResponse();
+            $errorBody = json_decode($response->getBody(), true);
+            return Killa::responseErrorWithMetaAndResult($response->getStatusCode(), 0, 'Client Error', $errorBody);
+        } catch (\GuzzleHttp\Exception\ServerException $e) {
+            // Handle 5xx Errors
+            $response = $e->getResponse();
+            $errorBody = json_decode($response->getBody(), true);
+            return Killa::responseErrorWithMetaAndResult($response->getStatusCode(), 0, 'Server Error', $errorBody);
+        } catch (\Exception $e) {
+            // Handle Other Errors
+            return Killa::responseErrorWithMetaAndResult(500, 0, 'An unexpected error occurred', $e->getMessage());
+        }
+    }
+
+
+
     public function index(Request $request)
     {
         // Cache key for the products
-        $cacheKey = 'products_csacxshex12';
+        $cacheKey = 'products_csaxcxshex12';
 
         // Check and fetch products from cache or database
         $products = Cache::remember($cacheKey, 1440, function () {
             return $this->fetchCategories();
         });
+
 
         // Prepare compacted data
         $compact = compact('products');
@@ -86,6 +136,7 @@ class MyMainProfileController extends Controller
                 $categoriesSet[] = (object)[
                     'id' => $category->id,
                     'category_name' => $category->name_id,
+                    'parent_id' => $productDetails->id ?? '',
                     'parent_name' => $productDetails->name ?? '',
                     'images' => $productDetails->images ?? [],
                     'plans' => $category->plans ?? [],

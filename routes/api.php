@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 
 
 
 Route::get('/products',[MyMainProfileController::class, 'index']);
+Route::get('/product/{id}', [MyMainProfileController::class, 'show']);
 
 Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
     Route::get('manage', [StaffController::class, 'viewAdminManage'])->name('cms-user.manage');
