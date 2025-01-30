@@ -92,7 +92,13 @@ Route::group(['middleware' => ['auth']], function () {
             Route::get("/",[App\Http\Controllers\BasicInfoController::class, 'index']);
             Route::post('store', [App\Http\Controllers\BasicInfoController::class, 'store']);
         });
-
+        Route::prefix('slider')->group(function(){
+            Route::get('/', [App\Http\Controllers\MyProfileSliderController::class, 'manageSlider']);
+            Route::post('store', [App\Http\Controllers\MyProfileSliderController::class, 'store']);
+            Route::get('{id}/delete', [App\Http\Controllers\MyProfileSliderController::class, 'destroy']);
+            Route::get('{id}/edit', [App\Http\Controllers\MyProfileSliderController::class, 'viewEdit']);
+            Route::post('update', [App\Http\Controllers\MyProfileSliderController::class, 'update']);
+        });
 
         Route::prefix('brand')->group(function(){
             Route::get('/', [App\Http\Controllers\MyProfileBrandController::class, 'manage']);
