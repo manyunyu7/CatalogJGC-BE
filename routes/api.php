@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ManageProductController;
 use App\Http\Controllers\MyMainProfileController;
 use App\Http\Controllers\MyProfileSliderController;
+use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\ProductPriceController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Http\Request;
@@ -46,7 +47,7 @@ Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 
 
 
 Route::get('/products',[MyMainProfileController::class, 'index']);
-Route::get('/product/detail/{parentId}/{id}', [ManageProductController::class, 'show']);
+Route::get('/product/detail/{parentId}/{id}', [ProductDetailController::class, 'show']);
 
 Route::middleware('auth:sanctum')->group(function() {
     Route::prefix("cms-product")->group(function(){

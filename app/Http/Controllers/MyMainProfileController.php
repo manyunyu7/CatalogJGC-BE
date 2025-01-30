@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helper\Killa;
+use App\Models\ProductPrice;
 use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -10,58 +11,11 @@ use Illuminate\Support\Facades\Http;
 
 class MyMainProfileController extends Controller
 {
-
-
-    public function show(Request $request, $id)
-    {
-        $productId = $id; // Example product ID
-        $apiUrl = "https://api-web.jakartagardencity.com/product/$productId";
-
-        try {
-            // Initialize Guzzle Client
-            $client = new Client();
-
-            // Make GET Request
-            $response = $client->get($apiUrl);
-            $statusCode = $response->getStatusCode();
-
-            // Parse Response
-            if ($statusCode === 200) {
-                $responseBody = json_decode($response->getBody(), true);
-
-                if (isset($responseBody['data'])) {
-                    // Convert array to a nested object
-                    $product = json_decode(json_encode($responseBody['data']));
-
-                    // Return success response
-                    return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $product);
-                } else {
-                    return Killa::responseErrorWithMetaAndResult(200, 0, 'Invalid response format', $responseBody);
-                }
-            }
-        } catch (\GuzzleHttp\Exception\ClientException $e) {
-            // Handle 4xx Errors
-            $response = $e->getResponse();
-            $errorBody = json_decode($response->getBody(), true);
-            return Killa::responseErrorWithMetaAndResult($response->getStatusCode(), 0, 'Client Error', $errorBody);
-        } catch (\GuzzleHttp\Exception\ServerException $e) {
-            // Handle 5xx Errors
-            $response = $e->getResponse();
-            $errorBody = json_decode($response->getBody(), true);
-            return Killa::responseErrorWithMetaAndResult($response->getStatusCode(), 0, 'Server Error', $errorBody);
-        } catch (\Exception $e) {
-            // Handle Other Errors
-            return Killa::responseErrorWithMetaAndResult(500, 0, 'An unexpected error occurred', $e->getMessage());
-        }
-    }
-
-
-
     //fetch all products
     public function index(Request $request)
     {
         // Cache the fetched categories for 10 minutes (600 seconds)
-        $cacheKey = 'categories_cache';
+        $cacheKey = 'z3_categories_cache';
         $products = Cache::remember($cacheKey, 600, function () {
             return $this->fetchCategories();
         });
@@ -76,7 +30,6 @@ class MyMainProfileController extends Controller
 
         return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $products);
     }
-
 
 
     // Fetch and process categories from the API
@@ -131,11 +84,29 @@ class MyMainProfileController extends Controller
                     $images->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($images->image) . "&w=1920&q=75";
                 }
 
+                $price = "";
+                $priceFormatted = "";
+                $pricePrefix = "";
+                // Data Price
+                $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
+                if ($dataPrice != null) {
+                    $price = $dataPrice->price;
+                    $pricePrefix = $dataPrice->prefix;
+                    $priceFormatted = "Rp " . number_format($dataPrice->price, 0, ',', '.'); // Format price with Rp
+                } else {
+                    $price = null;
+                    $pricePrefix = "";
+                    $priceFormatted = ""; // Format price with Rp
+                }
+
                 $categoriesSet[] = (object)[
                     'id' => $category->id,
                     'category_name' => $category->name_id,
                     'parent_id' => $productDetails->id ?? '',
                     'parent_name' => $productDetails->name ?? '',
+                    'price' => $price,
+                    'price_formatted' => $priceFormatted,
+                    'price_prefix' => $pricePrefix,
                     'images' => $productDetails->images ?? [],
                     'plans' => $category->plans ?? [],
                 ];
