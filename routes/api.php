@@ -1,8 +1,10 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\ManageProductController;
 use App\Http\Controllers\MyMainProfileController;
 use App\Http\Controllers\MyProfileSliderController;
+use App\Http\Controllers\ProductPriceController;
 use App\Http\Controllers\StaffController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +29,7 @@ Route::get('/our-clients', [App\Http\Controllers\MyProfileClientController::clas
 Route::get('/find-id-by-slug', [App\Http\Controllers\MyBrandConentController::class, 'find']);
 
 
+
 Route::group([
     'middleware' => 'api',
     'prefix' => 'auth'
@@ -43,7 +46,13 @@ Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 
 
 
 Route::get('/products',[MyMainProfileController::class, 'index']);
-Route::get('/product/{id}', [MyMainProfileController::class, 'show']);
+Route::get('/product/detail/{parentId}/{id}', [ManageProductController::class, 'show']);
+
+Route::middleware('auth:sanctum')->group(function() {
+    Route::prefix("cms-product")->group(function(){
+        Route::post("{id}/update-price",[ProductPriceController::class,'updatePrice']);
+    });
+});
 
 Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
     Route::get('manage', [StaffController::class, 'viewAdminManage'])->name('cms-user.manage');
