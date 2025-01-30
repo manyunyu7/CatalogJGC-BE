@@ -43,31 +43,31 @@ class RouteServiceProvider extends ServiceProvider
     {
         $this->configureRateLimiting();
 
-        $profile = MyBasicIdentity::all()->last();
-        $whatsapp = ContactWhatsapp::all();
+        // $profile = MyBasicIdentity::all()->last();
+        // $whatsapp = ContactWhatsapp::all();
 
-        $commonEnvironmental = $this->cari("21");
-        $commonGeneral = $this->cari("23");
-        $commonMineral = $this->cari("22");
-        $commonWaterPurification = $this->cari("26");
+        // $commonEnvironmental = $this->cari("21");
+        // $commonGeneral = $this->cari("23");
+        // $commonMineral = $this->cari("22");
+        // $commonWaterPurification = $this->cari("26");
 
         $this->configureRateLimiting();
 
-        $profile = MyBasicIdentity::all()->last() ?? new MyBasicIdentity();
-        $whatsapp = ContactWhatsapp::all() ?? collect();
+        // $profile = MyBasicIdentity::all()->last() ?? new MyBasicIdentity();
+        // $whatsapp = ContactWhatsapp::all() ?? collect();
 
-        $commonEnvironmental = $this->cari("21") ?? 'Default Environmental Value';
-        $commonGeneral = $this->cari("23") ?? 'Default General Value';
-        $commonMineral = $this->cari("22") ?? 'Default Mineral Value';
-        $commonWaterPurification = $this->cari("26") ?? 'Default Water Purification Value';
+        // $commonEnvironmental = $this->cari("21") ?? 'Default Environmental Value';
+        // $commonGeneral = $this->cari("23") ?? 'Default General Value';
+        // $commonMineral = $this->cari("22") ?? 'Default Mineral Value';
+        // $commonWaterPurification = $this->cari("26") ?? 'Default Water Purification Value';
 
-        View::share('profileData', $profile);
-        View::share('commonWhatsapp', $whatsapp);
+        // View::share('profileData', $profile);
+        // View::share('commonWhatsapp', $whatsapp);
 
-        View::share('commonMineral', $commonMineral);
-        View::share('commonWaterPurification', $commonWaterPurification);
-        View::share('commonGeneral', $commonGeneral);
-        View::share('commonEnvironmental', $commonEnvironmental);
+        // View::share('commonMineral', $commonMineral);
+        // View::share('commonWaterPurification', $commonWaterPurification);
+        // View::share('commonGeneral', $commonGeneral);
+        // View::share('commonEnvironmental', $commonEnvironmental);
 
 
         $this->routes(function () {
