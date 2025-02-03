@@ -15,8 +15,8 @@ class MyMainProfileController extends Controller
     public function index(Request $request)
     {
         // Cache the fetched categories for 10 minutes (600 seconds)
-        $cacheKey = 'z3_categories_cache';
-        $products = Cache::remember($cacheKey, 600, function () {
+        $cacheKey = 'z8_categories_cache';
+        $products = Cache::remember($cacheKey, 1, function () {
             return $this->fetchCategories();
         });
 
@@ -99,11 +99,17 @@ class MyMainProfileController extends Controller
                     $priceFormatted = ""; // Format price with Rp
                 }
 
+                $promo = $productDetails->promos ?? [];
+                $is_promo = !empty($promo);
+
+
                 $categoriesSet[] = (object)[
                     'id' => $category->id,
                     'category_name' => $category->name_id,
                     'parent_id' => $productDetails->id ?? '',
                     'parent_name' => $productDetails->name ?? '',
+                    'promo' => $productDetails->promos ?? '',
+                    'is_promo' => $is_promo,
                     'price' => $price,
                     'price_formatted' => $priceFormatted,
                     'price_prefix' => $pricePrefix,

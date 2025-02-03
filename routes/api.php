@@ -42,20 +42,30 @@ Route::group([
 });
 
 
-Route::post('cms-auth/login',[AuthController::class,'login']);
+Route::post('cms-auth/login', [AuthController::class, 'login']);
 Route::middleware('auth:sanctum')->get('cms-auth/user', [AuthController::class, 'getUserInfo']);
 
 
-Route::get('/products',[MyMainProfileController::class, 'index']);
+Route::get('/products', [MyMainProfileController::class, 'index']);
 Route::get('/product/detail/{parentId}/{id}', [ProductDetailController::class, 'show']);
 
-Route::middleware('auth:sanctum')->group(function() {
-    Route::prefix("cms-product")->group(function(){
-        Route::post("{id}/update-price",[ProductPriceController::class,'updatePrice']);
+Route::middleware('auth:sanctum')->group(function () {
+    Route::prefix("cms-product")->group(function () {
+        Route::post("{id}/update-price", [ProductPriceController::class, 'updatePrice']);
     });
 });
 
-Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
+Route::middleware('auth:sanctum')->group(function () {
+    // Routes for Fasilitas (Master Data)
+    Route::apiResource('fasilitas', FasilitasController::class);
+    // Override the update method to use POST
+    Route::post('fasilitas/{id}/update', [App\Http\Controllers\FasilitasController::class, 'update']);
+    // Routes for FasilitasTransaction
+    Route::apiResource('fasilitas-transactions', FasilitasTransactionController::class);
+    Route::post('fasilitas-transactions/bulk-update', [App\Http\Controllers\FasilitasTransactionController::class, 'bulkUpdate']);
+});
+
+Route::prefix('cms-user')->middleware('auth:sanctum')->group(function () {
     Route::get('manage', [StaffController::class, 'viewAdminManage'])->name('cms-user.manage');
     Route::get('edit/{id}', [StaffController::class, 'viewAdminEdit'])->name('cms-user.edit');
     Route::get('create', [StaffController::class, 'viewAdminCreate'])->name('cms-user.create');
@@ -64,7 +74,7 @@ Route::prefix('cms-user')->middleware('auth:sanctum')->group(function() {
     Route::delete('destroy/{id}', [StaffController::class, 'destroy'])->name('cms-user.destroy');
 });
 
-Route::prefix('slider')->middleware('auth:sanctum')->group(function() {
+Route::prefix('slider')->middleware('auth:sanctum')->group(function () {
     Route::get('manage', [MyProfileSliderController::class, 'manageSlider']);
     Route::get('edit/{id}', [MyProfileSliderController::class, 'viewEdit']);
     Route::get('create', [MyProfileSliderController::class, 'viewAdminCreate']);
@@ -77,7 +87,7 @@ Route::prefix('slider')->middleware('auth:sanctum')->group(function() {
 Route::post('auth/register', 'CustomAuthController@register');
 Route::get('auth/check-number', 'StaffController@checkIfNumberRegistered');
 
-Route::prefix("user")->group(function(){
+Route::prefix("user")->group(function () {
     Route::get('{id}', 'StaffController@profile');
 });
 
@@ -115,9 +125,3 @@ Route::group(['middleware' => ['auth:api']], function () {
     Route::post('save-user', 'UserController@saveUser');
     Route::put('edit-user', 'UserController@editUser');
 });
-
-
-
-
-
-
