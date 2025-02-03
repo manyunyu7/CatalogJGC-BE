@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Helper\Killa;
+use App\Models\Fasilitas;
+use App\Models\FasilitasTransaction;
 use App\Models\ProductPrice;
 use GuzzleHttp\Client;
+use stdClass;
 
 class ProductDetailController extends Controller
 {
@@ -35,15 +38,25 @@ class ProductDetailController extends Controller
                     $product = json_decode(json_encode($responseBody['data']));
 
                     // Data Price
-                    $dataPrice = ProductPrice::where("parent_id",'=',$id)->first();
-                    if($dataPrice!=null){
+                    $dataPrice = ProductPrice::where("parent_id", '=', $id)->first();
+                    if ($dataPrice != null) {
                         $product->price = (object) $dataPrice;
-                    }else{
+                    } else {
                         $product->price = null;
                     }
 
+                    //get all facility
+                    $facilities = Fasilitas::all(); // Convert collection to array
+                    $facilitiesTransaction = FasilitasTransaction::where("parent_id", '=', $id)->get();
+
+                    //class to hold responses
+                    $dataResponse = new stdClass();
+                    $dataResponse->product = $product;
+                    $dataResponse->facilities = $facilities;
+                    $dataResponse->facilities_transaction = $facilitiesTransaction;
+
                     // Return success response
-                    return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $product);
+                    return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $dataResponse);
                 } else {
                     return Killa::responseErrorWithMetaAndResult(200, 0, 'Invalid response format', $responseBody);
                 }
