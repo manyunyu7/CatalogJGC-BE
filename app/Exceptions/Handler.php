@@ -2,15 +2,22 @@
 
 namespace App\Exceptions;
 
+use App\Helper\Killa;
 use App\Http\Resources\UserResource;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Illuminate\Http\Exceptions\ThrottleRequestsException;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Arr;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Throwable;
 
 use Illuminate\Validation\ValidationException;
+use Psy\Readline\Hoa\FileException;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class Handler extends ExceptionHandler
@@ -49,74 +56,76 @@ class Handler extends ExceptionHandler
     public function render($request, Throwable $exception)
     {
         if ($request->is('api/*')) {
-
             if ($exception instanceof AuthenticationException) {
-                return response()->json([
-                    'message' => 'Unauthenticated.',
-                    'http_response' => 401,
-                    'status_code' => 0 ,
-                ], 401);
+                return Killa::responseErrorWithMetaAndResult(401, 0, 'Unauthenticated.', []);
             }
 
-            if ($exception instanceof BodyTooLargeException) {
-                return response()->json([
-                    'message' => 'The body is too large',
-                    'http_response' => 413,
-                    'status_code' => 0,
-                ], 413);
+            if ($exception instanceof AuthorizationException) {
+                return Killa::responseErrorWithMetaAndResult(403, 0, 'Forbidden.', []);
             }
+
+            if ($exception instanceof ThrottleRequestsException) {
+                return Killa::responseErrorWithMetaAndResult(429, 0, 'Too Many Requests.', []);
+            }
+
+            if ($exception instanceof HttpException) {
+                return Killa::responseErrorWithMetaAndResult($exception->getStatusCode(), 0, $exception->getMessage(), []);
+            }
+
+            if ($exception instanceof ModelNotFoundException) {
+                return Killa::responseErrorWithMetaAndResult(404, 0, 'Resource not found.', []);
+            }
+
+            if ($exception instanceof TokenMismatchException) {
+                return Killa::responseErrorWithMetaAndResult(419, 0, 'CSRF token mismatch.', []);
+            }
+
+            if ($exception instanceof FileException) {
+                return Killa::responseErrorWithMetaAndResult(500, 0, 'File handling error.', [$exception->getMessage()]);
+            }
+
+            // if ($exception instanceof FatalThrowableError) {
+            //     return Killa::responseErrorWithMetaAndResult(500, 0, 'A fatal error has occurred.', [$exception->getMessage()]);
+            // }
+
             if ($exception instanceof ValidationException) {
-                return response()->json([
-                    'message' => $exception->getMessage(),
-                    'http_response' => 422,
-                    'status_code' => 0,
-                    'errors' => $exception->errors(),
-                ], 422);
-            }
-            if ($exception instanceof StoreResourceFailedException) {
-                return response()->json([
-                    'message' => $exception->getMessage(),
-                    'http_response' => 422,
-                    'status_code' => 0,
-                    'errors' => $exception->errors,
-                ], 422);
-            }
-            if ($exception instanceof NotFoundHttpException) {
-                return response()->json([
-                    'message' => '404 Not Found',
-                    'http_response' => 404,
-                    'status_code' => 0,
-                    'errors' => $exception->getMessage(),
+                $errorMessages = implode(' ', $exception->errors());
 
-                ], 404);
+                // Log the response for debugging
+                \Log::debug('Validation Error Response:', [
+                    'message' => $errorMessages,
+                    'errors' => $exception->errors(),
+                    'failed_rules' => $exception->validator->failed(),
+                    'input' => $exception->validator->getData()
+                ]);
+
+                return Killa::responseErrorWithMetaAndResult(422, 0, $errorMessages, [
+                    'errors' => $exception->errors(),
+                    'failed_rules' => $exception->validator->failed(),
+                    'input' => $exception->validator->getData()
+                ]);
+            }
+
+
+            if ($exception instanceof NotFoundHttpException) {
+                return Killa::responseErrorWithMetaAndResult(404, 0, '404 Not Found', [$exception->getMessage()]);
             }
 
             if ($exception instanceof MethodNotAllowedHttpException) {
-                return response()->json([
-                    'message' => '405 Method not allowed',
-                    'http_response' => 405,
-                    'status_code' => 0,
-                ], 405);
+                return Killa::responseErrorWithMetaAndResult(405, 0, '405 Method Not Allowed', []);
             }
 
             if ($exception instanceof QueryException) {
-                return response()->json([
-                    'message' => '422 Unprocessable Entity',
-                    'error' => $exception->getMessage(),
-                    'http_response' => 422,
-                    'status_code' => 0,
-                ], 405);
+                // Get the full error message from the exception
+                $errorMessage = $exception->getMessage();
+
+                return Killa::responseErrorWithMetaAndResult(422, 0, $errorMessage, [
+                    'error_details' => $exception->getMessage(), // Include the full error message in the meta
+                ]);
             }
-
-            return parent::render($request, $exception);
-
-            return response()->json([
-                'message' => '500 , An Error has Occured',
-                'http_response' => 500,
-                'status_code' => 0,
-            ], 404);
-        } else {
-            return parent::render($request, $exception);
+            return Killa::responseErrorWithMetaAndResult(500, 0, '500 An Error Has Occurred', []);
         }
+
+        return parent::render($request, $exception);
     }
 }
