@@ -15,6 +15,15 @@ class Fasilitas extends Model
     // Define the table associated with this model
     protected $table = 'fasilitas';
 
+    // Append the new attribute to the model
+    protected $appends = ['img_full_path'];
+
+    // Accessor for the new attribute
+    public function getImgFullPathAttribute()
+    {
+        return url("").$this->icon;
+    }
+
     // Define fillable columns for mass assignment
     protected $fillable = [
         'icon',
