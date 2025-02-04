@@ -17,6 +17,17 @@
       0 => 'CalosKao\\MigrateSpecific\\MigrateSpecificServiceProvider',
     ),
   ),
+  'darkaonline/l5-swagger' => 
+  array (
+    'aliases' => 
+    array (
+      'L5Swagger' => 'L5Swagger\\L5SwaggerFacade',
+    ),
+    'providers' => 
+    array (
+      0 => 'L5Swagger\\L5SwaggerServiceProvider',
+    ),
+  ),
   'facade/ignition' => 
   array (
     'providers' => 
