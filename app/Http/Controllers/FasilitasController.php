@@ -50,6 +50,7 @@ class FasilitasController extends Controller
             $object = new Fasilitas();
             $object->name = $request->name;
             $object->description = $request->description;
+            $object->created_by = auth()->user()->id; // Set created_by field
 
             // Handle image upload
             if ($request->hasFile('icon')) {
@@ -80,16 +81,16 @@ class FasilitasController extends Controller
             return Killa::responseErrorWithMetaAndResult(
                 500,
                 500,
-                'An error occurred while saving the slider',
+                'An error occurred while saving the facility',
                 ['error' => $e->getMessage()]
             );
         }
     }
 
+
     // Update an existing facility
     public function update(Request $request, $id)
     {
-
         // Validate the request
         $validator = Validator::make($request->all(), [
             'name' => 'sometimes|string|max:255',
@@ -117,6 +118,7 @@ class FasilitasController extends Controller
             // Update the fields that are present in the request
             $fasilitas->name = $request->name ?? $fasilitas->name;
             $fasilitas->description = $request->description ?? $fasilitas->description;
+            $fasilitas->created_by = auth()->user()->id; // Set updated_by field
 
             // Handle the file upload if an icon is provided
             if ($request->hasFile('icon')) {
@@ -168,6 +170,7 @@ class FasilitasController extends Controller
 
 
     // Delete a facility
+    // Soft Delete a facility and set deleted_by field
     public function destroy($id)
     {
         try {
@@ -177,6 +180,10 @@ class FasilitasController extends Controller
             if (!$fasilitas) {
                 return Killa::responseErrorWithMetaAndResult(404, 0, 'Facility not found', []);
             }
+
+            // Update deleted_by field
+            $fasilitas->deleted_by = auth()->user()->id;
+            $fasilitas->save(); // Save the change
 
             // Soft delete the facility
             $fasilitas->delete();
