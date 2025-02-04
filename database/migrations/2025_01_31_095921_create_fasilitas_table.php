@@ -19,6 +19,16 @@ class CreateFasilitasTable extends Migration
             $table->string('name'); // Name of the facility
             $table->text('description')->nullable(); // Description of the facility
             $table->softDeletes(); // Adds the `deleted_at` column
+
+
+            $table->unsignedBigInteger('created_by')->nullable(); // Add created_by column
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null'); // Assuming 'users' table exists
+
+
+            $table->unsignedBigInteger('deleted_by')->nullable(); // Add created_by column
+            $table->foreign('deleted_by')->references('id')->on('users')->onDelete('set null'); // Assuming 'users' table exists
+
+
             $table->timestamps(); // Created at and updated at timestamps
         });
     }

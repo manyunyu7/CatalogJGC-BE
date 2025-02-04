@@ -18,6 +18,14 @@ class CreateFasilitasTransactionsTable extends Migration
 
             // Foreign key constraint for icon_id
             $table->foreign('fasilitas_id')->references('id')->on('fasilitas')->onDelete('cascade');
+
+            $table->unsignedBigInteger('created_by')->nullable(); // Add created_by column
+            $table->foreign('created_by')->references('id')->on('users')->onDelete('set null'); // Assuming 'users' table exists
+
+            $table->unsignedBigInteger('deleted_by')->nullable(); // Add created_by column
+            $table->foreign('deleted_by')->references('id')->on('users')->onDelete('set null'); // Assuming 'users' table exists
+
+
         });
     }
 
