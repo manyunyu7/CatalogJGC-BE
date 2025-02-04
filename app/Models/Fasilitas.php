@@ -29,6 +29,8 @@ class Fasilitas extends Model
         'icon',
         'name',
         'description',
+        'created_by',
+        'deleted_by',  // Ensure deleted_by is fillable
     ];
 
     // Define relationship with FasilitasTransaction

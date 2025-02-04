@@ -19,6 +19,8 @@ class FasilitasTransaction extends Model
     protected $fillable = [
         'parent_id', // Plain column, not a foreign key
         'fasilitas_id',   // Foreign key to fasilitas table
+        'created_by',
+        'deleted_by',  // Ensure deleted_by is fillable
     ];
 
     // Define relationship with Fasilitas
