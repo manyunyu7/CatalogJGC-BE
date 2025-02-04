@@ -47,7 +47,12 @@ class ProductDetailController extends Controller
 
                     //get all facility
                     $facilities = Fasilitas::all(); // Convert collection to array
-                    $facilitiesTransaction = FasilitasTransaction::where("parent_id", '=', $id)->get();
+                    $facilitiesTransaction = FasilitasTransaction::where("parent_id", $id)
+                    ->whereHas('fasilitas', function ($query) {
+                        $query->whereNull('deleted_at'); // Ensure parent isn't soft deleted
+                    })
+                    ->with('fasilitas')
+                    ->get();
 
                     //class to hold responses
                     $dataResponse = new stdClass();
