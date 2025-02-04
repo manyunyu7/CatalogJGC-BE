@@ -21,6 +21,9 @@ class CreateOurBrandsTable extends Migration
             $table->string("action_link")->nullable();
             $table->string("image")->nullable();
             $table->string("order")->nullable();
+            $table->string("icon")->nullable();
+            $table->string("second_action")->nullable();
+            $table->string("second_action_link")->nullable();
             $table->timestamps();
         });
     }
