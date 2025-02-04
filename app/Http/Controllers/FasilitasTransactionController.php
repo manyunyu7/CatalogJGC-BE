@@ -58,7 +58,7 @@ class FasilitasTransactionController extends Controller
 
             FasilitasTransaction::insert($transactions);
 
-            return Killa::responseSuccessWithMetaAndResult(201, count($transactions), 'Transactions updated successfully', $transactions);
+            return Killa::responseSuccessWithMetaAndResult(201, count($transactions), 'Facilities Updated Successfully', $transactions);
         } catch (ValidationException $e) {
             return Killa::responseErrorWithMetaAndResult(422, 0, 'Validation error', $e->errors());
         }
@@ -69,15 +69,22 @@ class FasilitasTransactionController extends Controller
     public function store(Request $request)
     {
         try {
+            // Validate the request data
             $validatedData = $request->validate([
                 'parent_id' => 'nullable|integer',
                 'fasilitas_id' => 'required|exists:fasilitas,id',
             ]);
 
+            // Add the created_by field with the authenticated user's ID
+            $validatedData['created_by'] = auth()->user()->id;
+
+            // Create the transaction
             $transaction = FasilitasTransaction::create($validatedData);
 
+            // Return a successful response
             return Killa::responseSuccessWithMetaAndResult(201, 1, 'Transaction created successfully', $transaction);
         } catch (ValidationException $e) {
+            // Handle validation errors
             return Killa::responseErrorWithMetaAndResult(422, 0, 'Validation error', $e->errors());
         }
     }
@@ -92,20 +99,29 @@ class FasilitasTransactionController extends Controller
         }
 
         try {
+            // Validate the request data
             $validatedData = $request->validate([
                 'parent_id' => 'nullable|integer',
                 'fasilitas_id' => 'sometimes|exists:fasilitas,id',
             ]);
 
+            // Add created_by only if it's not already set, preserving its value
+            if (!$transaction->created_by) {
+                $validatedData['created_by'] = auth()->user()->id;
+            }
+
+            // Update the transaction
             $transaction->update($validatedData);
 
+            // Return a successful response
             return Killa::responseSuccessWithMetaAndResult(200, 1, 'Transaction updated successfully', $transaction);
         } catch (ValidationException $e) {
+            // Handle validation errors
             return Killa::responseErrorWithMetaAndResult(422, 0, 'Validation error', $e->errors());
         }
     }
 
-    // Delete a transaction
+    // Soft Delete a transaction and set deleted_by field
     public function destroy($id)
     {
         $transaction = FasilitasTransaction::find($id);
@@ -114,8 +130,14 @@ class FasilitasTransactionController extends Controller
             return Killa::responseErrorWithMetaAndResult(404, 0, 'Transaction not found', []);
         }
 
+        // Update deleted_by with the authenticated user ID
+        $transaction->deleted_by = auth()->user()->id;
+        $transaction->save(); // Save the change
+
+        // Soft delete the transaction (set deleted_at timestamp)
         $transaction->delete();
 
+        // Return success response
         return Killa::responseSuccessWithMetaAndResult(200, 1, 'Transaction deleted successfully', []);
     }
 }

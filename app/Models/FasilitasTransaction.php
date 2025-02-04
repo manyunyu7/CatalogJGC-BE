@@ -26,6 +26,6 @@ class FasilitasTransaction extends Model
     // Define relationship with Fasilitas
     public function fasilitas()
     {
-        return $this->belongsTo(Fasilitas::class, 'fasilitas_id');
+        return $this->belongsTo(Fasilitas::class, 'fasilitas_id')->whereNull('deleted_at');
     }
 }
