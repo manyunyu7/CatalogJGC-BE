@@ -9,6 +9,18 @@ use Illuminate\Support\Facades\Validator;
 
 class MyProfileSliderController extends Controller
 {
+    public function getBanners()
+{
+    $banners = MySlider::all()->map(function ($banner) {
+        $banner->image = asset($banner->image);
+        return $banner;
+    });
+
+    return response()->json([
+        'status' => 'success',
+        'banners' => $banners
+    ]);
+}
     public function manageSlider()
     {
         try {

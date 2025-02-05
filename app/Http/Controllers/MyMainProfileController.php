@@ -8,9 +8,11 @@ use GuzzleHttp\Client;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
 
 class MyMainProfileController extends Controller
 {
+   
     //fetch all products
     public function index(Request $request)
     {
@@ -71,50 +73,67 @@ class MyMainProfileController extends Controller
     private function extractCategories($productDetails)
     {
         $categoriesSet = [];
+    $propertyType = isset($productDetails->type) ? $this->getPropertyType($productDetails->type) : 'Unknown'; // Pastikan type ada
 
-        foreach ($productDetails->types ?? [] as $type) {
-            foreach ($type->categories ?? [] as $category) {
-                // Add the full image path to each plan
-                foreach ($category->plans ?? [] as &$plan) {
-                    // Create the full image URL for each plan
-                    $plan->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($plan->image) . "&w=1920&q=75";
-                }
-
-                foreach ($productDetails->images as $images) {
-                    $images->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($images->image) . "&w=1920&q=75";
-                }
-
-                $price = "";
-                $priceFormatted = "";
-                $pricePrefix = "";
-                // Data Price
-                $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
-                if ($dataPrice != null) {
-                    $price = $dataPrice->price;
-                    $pricePrefix = $dataPrice->prefix;
-                    $priceFormatted = "Rp " . number_format($dataPrice->price, 0, ',', '.'); // Format price with Rp
-                } else {
-                    $price = null;
-                    $pricePrefix = "";
-                    $priceFormatted = ""; // Format price with Rp
-                }
-
-                $categoriesSet[] = (object)[
-                    'id' => $category->id,
-                    'category_name' => $category->name_id,
-                    'parent_id' => $productDetails->id ?? '',
-                    'parent_name' => $productDetails->name ?? '',
-                    'price' => $price,
-                    'price_formatted' => $priceFormatted,
-                    'price_prefix' => $pricePrefix,
-                    'images' => $productDetails->images ?? [],
-                    'plans' => $category->plans ?? [],
-                ];
+    foreach ($productDetails->types ?? [] as $type) {
+        foreach ($type->categories ?? [] as $category) {
+            // Add the full image path to each plan
+            foreach ($category->plans ?? [] as &$plan) {
+                // Create the full image URL for each plan
+                $plan->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($plan->image) . "&w=1920&q=75";
             }
+
+            foreach ($productDetails->images as $images) {
+                $images->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($images->image) . "&w=1920&q=75";
+            }
+
+            $price = "";
+            $priceFormatted = "";
+            $pricePrefix = "";
+            // Data Price
+            $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
+            if ($dataPrice != null) {
+                $price = $dataPrice->price;
+                $pricePrefix = $dataPrice->prefix;
+                $priceFormatted = "Rp " . number_format($dataPrice->price, 0, ',', '.'); // Format price with Rp
+            } else {
+                $price = null;
+                $pricePrefix = "";
+                $priceFormatted = ""; // Format price with Rp
+            }
+
+            $promo = $productDetails->promos ?? [];
+            $is_promo = !empty($promo);
+
+            $categoriesSet[] = (object)[
+                'id' => $category->id,
+                'category_name' => $category->name_id,
+                'parent_id' => $productDetails->id ?? '',
+                'parent_name' => $productDetails->name ?? '',
+                'property_type' => $propertyType, 
+                'promo' => $productDetails->promos ?? '',
+                'is_promo' => $is_promo,
+                'price' => $price,
+                'price_formatted' => $priceFormatted,
+                'price_prefix' => $pricePrefix,
+                'images' => $productDetails->images ?? [],
+                'plans' => $category->plans ?? [],
+                'luas_tanah' => $category->luas_tanah ?? null, 
+                'luas_bangunan' => $category->luas_bangunan ?? null, 
+            ];
         }
+    }
 
+    return $categoriesSet;
+    }
+    private function getPropertyType($type)
+    {
+        $types = [
+            0 => 'Perumahan',
+            1 => 'Apartemen',
+            2 => 'Komersil'
+        ];
 
-
-        return $categoriesSet;
+        return $types[$type] ?? 'Unknown';
     }
 }

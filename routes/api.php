@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:api')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+Route::get('/banners', [MyProfileSliderController::class, 'getBanners']);
 
 
 Route::get('/our-clients', [App\Http\Controllers\MyProfileClientController::class, 'getClientList']);
