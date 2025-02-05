@@ -12,8 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 class MyMainProfileController extends Controller
 {
-   
-    //fetch all products
+    // Fetch all products
     public function index(Request $request)
     {
         // Cache the fetched categories for 10 minutes (600 seconds)
@@ -32,7 +31,6 @@ class MyMainProfileController extends Controller
 
         return Killa::responseSuccessWithMetaAndResult(200, 1, 'Success', $products);
     }
-
 
     // Fetch and process categories from the API
     private function fetchCategories()
@@ -73,59 +71,80 @@ class MyMainProfileController extends Controller
     private function extractCategories($productDetails)
     {
         $categoriesSet = [];
-    $propertyType = isset($productDetails->type) ? $this->getPropertyType($productDetails->type) : 'Unknown'; // Pastikan type ada
+        $propertyType = isset($productDetails->type) ? $this->getPropertyType($productDetails->type) : 'Unknown'; // Pastikan type ada
 
-    foreach ($productDetails->types ?? [] as $type) {
-        foreach ($type->categories ?? [] as $category) {
-            // Add the full image path to each plan
-            foreach ($category->plans ?? [] as &$plan) {
-                // Create the full image URL for each plan
-                $plan->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($plan->image) . "&w=1920&q=75";
+        // Jika produk memiliki tipe (types)
+        if (!empty($productDetails->types)) {
+            foreach ($productDetails->types as $type) {
+                // Jika tipe memiliki sub-tipe (categories)
+                if (!empty($type->categories)) {
+                    foreach ($type->categories as $category) {
+                        $categoriesSet[] = $this->buildCategoryData($productDetails, $category, $propertyType);
+                    }
+                } else {
+                    // Jika tipe tidak memiliki sub-tipe, gunakan data dari tipe utama
+                    $categoriesSet[] = $this->buildCategoryData($productDetails, $type, $propertyType);
+                }
             }
-
-            foreach ($productDetails->images as $images) {
-                $images->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($images->image) . "&w=1920&q=75";
-            }
-
-            $price = "";
-            $priceFormatted = "";
-            $pricePrefix = "";
-            // Data Price
-            $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
-            if ($dataPrice != null) {
-                $price = $dataPrice->price;
-                $pricePrefix = $dataPrice->prefix;
-                $priceFormatted = "Rp " . number_format($dataPrice->price, 0, ',', '.'); // Format price with Rp
-            } else {
-                $price = null;
-                $pricePrefix = "";
-                $priceFormatted = ""; // Format price with Rp
-            }
-
-            $promo = $productDetails->promos ?? [];
-            $is_promo = !empty($promo);
-
-            $categoriesSet[] = (object)[
-                'id' => $category->id,
-                'category_name' => $category->name_id,
-                'parent_id' => $productDetails->id ?? '',
-                'parent_name' => $productDetails->name ?? '',
-                'property_type' => $propertyType, 
-                'promo' => $productDetails->promos ?? '',
-                'is_promo' => $is_promo,
-                'price' => $price,
-                'price_formatted' => $priceFormatted,
-                'price_prefix' => $pricePrefix,
-                'images' => $productDetails->images ?? [],
-                'plans' => $category->plans ?? [],
-                'luas_tanah' => $category->luas_tanah ?? null, 
-                'luas_bangunan' => $category->luas_bangunan ?? null, 
-            ];
+        } else {
+            // Jika produk tidak memiliki tipe sama sekali, gunakan data produk utama
+            $categoriesSet[] = $this->buildCategoryData($productDetails, $productDetails, $propertyType);
         }
+
+        return $categoriesSet;
     }
 
-    return $categoriesSet;
+    // Helper function to build category data
+    private function buildCategoryData($productDetails, $category, $propertyType)
+    {
+        // Add the full image path to each plan
+        foreach ($category->plans ?? [] as &$plan) {
+            $plan->full_image_path = $this->getFullImagePath($plan->image ?? '');
+        }
+
+        // Add the full image path to product images
+        foreach ($productDetails->images ?? [] as &$image) {
+            $image->full_image_path = $this->getFullImagePath($image->image ?? '');
+        }
+
+        // Data Price
+        $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
+        $price = $dataPrice->price ?? null;
+        $pricePrefix = $dataPrice->prefix ?? '';
+        $priceFormatted = $price ? "Rp " . number_format($price, 0, ',', '.') : '';
+
+        // Check if product has promo
+        $promo = $productDetails->promos ?? [];
+        $is_promo = !empty($promo);
+
+        return (object)[
+            'id' => $category->id ?? '',
+            'category_name' => $category->name_id ?? $productDetails->name ?? '',
+            'parent_id' => $productDetails->id ?? '',
+            'parent_name' => $productDetails->name ?? '',
+            'property_type' => $propertyType,
+            'promo' => $promo,
+            'is_promo' => $is_promo,
+            'price' => $price,
+            'price_formatted' => $priceFormatted,
+            'price_prefix' => $pricePrefix,
+            'images' => $productDetails->images ?? [],
+            'plans' => $category->plans ?? [],
+            'luas_tanah' => $category->luas_tanah ?? null,
+            'luas_bangunan' => $category->luas_bangunan ?? null,
+        ];
     }
+
+    // Helper function to get full image path
+    private function getFullImagePath($image)
+    {
+        if (empty($image)) {
+            return '';
+        }
+        return "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($image) . "&w=1920&q=75";
+    }
+
+    // Get property type
     private function getPropertyType($type)
     {
         $types = [
