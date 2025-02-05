@@ -73,53 +73,84 @@ class MyMainProfileController extends Controller
         $categoriesSet = [];
 
         foreach ($productDetails->types ?? [] as $type) {
-            foreach ($type->categories ?? [] as $category) {
-                // Add the full image path to each plan
-                foreach ($category->plans ?? [] as &$plan) {
-                    // Create the full image URL for each plan
-                    $plan->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($plan->image) . "&w=1920&q=75";
-                }
-
-                foreach ($productDetails->images as $images) {
-                    $images->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($images->image) . "&w=1920&q=75";
-                }
-
-                $price = "";
-                $priceFormatted = "";
-                $pricePrefix = "";
-                // Data Price
-                $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
-                if ($dataPrice != null) {
-                    $price = $dataPrice->price;
-                    $pricePrefix = $dataPrice->prefix;
-                    $priceFormatted = "Rp " . number_format($dataPrice->price, 0, ',', '.'); // Format price with Rp
-                } else {
-                    $price = null;
-                    $pricePrefix = "";
-                    $priceFormatted = ""; // Format price with Rp
-                }
-
-                $promo = $productDetails->promos ?? [];
-                $is_promo = !empty($promo);
-
-
+            // Jika tidak ada kategori, kita tetap tambahkan tipe sebagai kategori
+            if (empty($type->categories)) {
                 $categoriesSet[] = (object)[
-                    'id' => $category->id,
-                    'category_name' => $category->name_id,
+                    'id' => $type->id,
+                    'category_name' => $type->name_id,
                     'parent_id' => $productDetails->id ?? '',
                     'parent_name' => $productDetails->name ?? '',
                     'promo' => $productDetails->promos ?? '',
-                    'is_promo' => $is_promo,
-                    'price' => $price,
-                    'price_formatted' => $priceFormatted,
-                    'price_prefix' => $pricePrefix,
+                    'is_promo' => !empty($productDetails->promos),
+                    'price' => null, // Karena kategori tidak ada, harga diset null
+                    'price_formatted' => '',
+                    'price_prefix' => '',
                     'images' => $productDetails->images ?? [],
-                    'plans' => $category->plans ?? [],
+                    'plans' => $type->plans ?? [], // Tetap menampilkan rencana (jika ada)
                 ];
+
+                // Ensure images have full_image_path before adding to categoriesSet
+                if (!empty($productDetails->images)) {
+                    foreach ($productDetails->images as &$image) { // Use reference '&' to modify the original object
+                        $image->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($image->image) . "&w=1920&q=75";
+                    }
+                    unset($image); // Prevent reference issue
+                }
+
+                $categoriesSet[] = (object)[
+                    'id' => $type->id,
+                    'category_name' => $type->name_id,
+                    'parent_id' => $productDetails->id ?? '',
+                    'parent_name' => $productDetails->name ?? '',
+                    'promo' => $productDetails->promos ?? '',
+                    'is_promo' => !empty($productDetails->promos),
+                    'price' => null, // Karena kategori tidak ada, harga diset null
+                    'price_formatted' => '',
+                    'price_prefix' => '',
+                    'images' => $productDetails->images ?? [], // Now contains full_image_path
+                    'plans' => $type->plans ?? [], // Tetap menampilkan rencana (jika ada)
+                ];
+
+
+            } else {
+                foreach ($type->categories as $category) {
+                    // Add the full image path to each plan
+                    foreach ($category->plans ?? [] as &$plan) {
+                        // Create the full image URL for each plan
+                        $plan->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($plan->image) . "&w=1920&q=75";
+                    }
+
+                    foreach ($productDetails->images as $images) {
+                        $images->full_image_path = "https://jakartagardencity.com/_next/image?url=https%3A%2F%2Fapi-web.jakartagardencity.com%2F" . urlencode($images->image) . "&w=1920&q=75";
+                    }
+
+                    $price = "";
+                    $priceFormatted = "";
+                    $pricePrefix = "";
+                    // Data Price
+                    $dataPrice = ProductPrice::where("parent_id", '=', $category->id)->first();
+                    if ($dataPrice != null) {
+                        $price = $dataPrice->price;
+                        $pricePrefix = $dataPrice->prefix;
+                        $priceFormatted = "Rp " . number_format($dataPrice->price, 0, ',', '.');
+                    }
+
+                    $categoriesSet[] = (object)[
+                        'id' => $category->id,
+                        'category_name' => $category->name_id,
+                        'parent_id' => $productDetails->id ?? '',
+                        'parent_name' => $productDetails->name ?? '',
+                        'promo' => $productDetails->promos ?? '',
+                        'is_promo' => !empty($productDetails->promos),
+                        'price' => $price,
+                        'price_formatted' => $priceFormatted,
+                        'price_prefix' => $pricePrefix,
+                        'images' => $productDetails->images ?? [],
+                        'plans' => $category->plans ?? [],
+                    ];
+                }
             }
         }
-
-
 
         return $categoriesSet;
     }
