@@ -6,12 +6,14 @@ use App\Helper\Killa;
 use App\Http\Resources\UserResource;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Auth\AuthenticationException;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Http\Exceptions\ThrottleRequestsException;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Throwable;
 
@@ -92,7 +94,7 @@ class Handler extends ExceptionHandler
                 $errorMessages = implode(' ', $exception->errors());
 
                 // Log the response for debugging
-                \Log::debug('Validation Error Response:', [
+                Log::debug('Validation Error Response:', [
                     'message' => $errorMessages,
                     'errors' => $exception->errors(),
                     'failed_rules' => $exception->validator->failed(),
@@ -115,6 +117,11 @@ class Handler extends ExceptionHandler
                 return Killa::responseErrorWithMetaAndResult(405, 0, '405 Method Not Allowed', []);
             }
 
+
+            if ($exception instanceof BindingResolutionException) {
+                return Killa::responseErrorWithMetaAndResult(405, 0, 'Binding Resolution Exception', [$exception->getMessage()]);
+            }
+
             if ($exception instanceof QueryException) {
                 // Get the full error message from the exception
                 $errorMessage = $exception->getMessage();
@@ -123,7 +130,7 @@ class Handler extends ExceptionHandler
                     'error_details' => $exception->getMessage(), // Include the full error message in the meta
                 ]);
             }
-            return Killa::responseErrorWithMetaAndResult(500, 0, '500 An Error Has Occurred', []);
+            // return Killa::responseErrorWithMetaAndResult(500, 0, '500 An Error Has Occurred' + $exception, []);
         }
 
         return parent::render($request, $exception);
