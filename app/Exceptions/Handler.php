@@ -91,7 +91,10 @@ class Handler extends ExceptionHandler
             // }
 
             if ($exception instanceof ValidationException) {
-                $errorMessages = implode(' ', $exception->errors());
+                // Flatten the error messages array
+                $errorMessages = implode(' ', array_map(function ($messages) {
+                    return implode(' ', $messages);
+                }, $exception->errors()));
 
                 // Log the response for debugging
                 Log::debug('Validation Error Response:', [
