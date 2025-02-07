@@ -72,6 +72,13 @@ Route::prefix('cms-user')->middleware('auth:sanctum')->group(function () {
     Route::post('store', [StaffController::class, 'store'])->name('cms-user.store');
     Route::put('update', [StaffController::class, 'update'])->name('cms-user.update');
     Route::delete('destroy/{id}', [StaffController::class, 'destroy'])->name('cms-user.destroy');
+
+    Route::prefix('product-images')->group(function () {
+        Route::post('/{parentId}', [App\Http\Controllers\ProductImageController::class, 'store']); // Upload images
+        Route::any('/{id}', [App\Http\Controllers\ProductImageController::class, 'destroy']); // Delete image
+        Route::get('/', [App\Http\Controllers\ProductImageController::class, 'getAll']); // Delete image
+        Route::post('/reorder', [App\Http\Controllers\ProductImageController::class, 'reorderImages']); // Reorder images
+    });
 });
 
 Route::prefix('slider')->middleware('auth:sanctum')->group(function () {
