@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\LaravelEstriController;
+use App\Http\Controllers\ProductDetailController;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Route;
 
