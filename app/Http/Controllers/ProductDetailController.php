@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Helper\Killa;
 use App\Models\Fasilitas;
 use App\Models\FasilitasTransaction;
+use App\Models\ProductDetail;
 use App\Models\ProductPrice;
 use GuzzleHttp\Client;
 use stdClass;
@@ -45,6 +46,11 @@ class ProductDetailController extends Controller
                         $product->price = null;
                     }
 
+                    //get productInformationDetail
+
+                    $productInformationDetail = ProductDetail::where("parent_id",$id)
+                    ->first();
+
                     //get all facility
                     $facilities = Fasilitas::all(); // Convert collection to array
                     $facilitiesTransaction = FasilitasTransaction::where("parent_id", $id)
@@ -58,6 +64,7 @@ class ProductDetailController extends Controller
                     $dataResponse = new stdClass();
                     $dataResponse->product = $product;
                     $dataResponse->facilities = $facilities;
+                    $dataResponse->productInformationDetail=$productInformationDetail;
                     $dataResponse->facilities_transaction = $facilitiesTransaction;
 
                     // Return success response
