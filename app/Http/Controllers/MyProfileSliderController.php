@@ -65,10 +65,6 @@ class MyProfileSliderController extends Controller
         $object = MySlider::findOrFail($request->id);
         $object->title = $request->title;
         $object->description = $request->description;
-        $object->action = $request->action;
-        $object->action_link = $request->action_link;
-        $object->second_action = $request->second_action;
-        $object->second_action_link = $request->second_action_link;
         $object->order = $request->order;
 
         // Handle image upload if present
@@ -90,27 +86,6 @@ class MyProfileSliderController extends Controller
             $path = public_path() . $savePath;
             $file->move($path, $fileName);
             $object->image = $savePath . $fileName;
-        }
-
-        // Handle icon upload if present
-        if ($request->hasFile('icon')) {
-            // remove existing icon first
-            $file_path = public_path() . $object->icon;
-            if (file_exists($file_path)) {
-                try {
-                    unlink($file_path);
-                } catch (\Exception $e) {
-                    // Do Nothing on Exception
-                }
-            }
-
-            $file = $request->file('icon');
-            $extension = $file->getClientOriginalExtension();
-            $fileName = time() . '.' . $extension;
-            $savePath = "/web_files/slider_icon/";
-            $path = public_path() . $savePath;
-            $file->move($path, $fileName);
-            $object->icon = $savePath . $fileName;
         }
 
         if ($object->save()) {
@@ -138,13 +113,13 @@ class MyProfileSliderController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'action' => 'nullable|string|max:255',
-            'action_link' => 'nullable|url',
-            'second_action' => 'nullable|string|max:255',
-            'second_action_link' => 'nullable|url',
+            // 'action' => 'nullable|string|max:255',
+            // 'action_link' => 'nullable|url',
+            // 'second_action' => 'nullable|string|max:255',
+            // 'second_action_link' => 'nullable|url',
             'order' => 'required|integer',
-            'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
+            'image' => 'required|image',
+            // 'icon' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
         ]);
 
         if ($validator->fails()) {
@@ -160,10 +135,10 @@ class MyProfileSliderController extends Controller
             $object = new MySlider();
             $object->title = $request->title;
             $object->description = $request->description;
-            $object->action = $request->action;
-            $object->action_link = $request->action_link;
-            $object->second_action = $request->second_action;
-            $object->second_action_link = $request->second_action_link;
+            // $object->action = $request->action;
+            // $object->action_link = $request->action_link;
+            // $object->second_action = $request->second_action;
+            // $object->second_action_link = $request->second_action_link;
             $object->order = $request->order;
 
             // Handle image upload
@@ -174,16 +149,6 @@ class MyProfileSliderController extends Controller
                 $path = public_path() . $savePath;
                 $file->move($path, $fileName);
                 $object->image = $savePath . $fileName;
-            }
-
-            // Handle icon upload
-            if ($request->hasFile('icon')) {
-                $file = $request->file('icon');
-                $fileName = time() . '.' . $file->getClientOriginalExtension();
-                $savePath = "/web_files/slider_icon/";
-                $path = public_path() . $savePath;
-                $file->move($path, $fileName);
-                $object->icon = $savePath . $fileName;
             }
 
             if ($object->save()) {
