@@ -57,84 +57,82 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $exception)
     {
-        if ($request->is('api/*')) {
-            if ($exception instanceof AuthenticationException) {
-                return Killa::responseErrorWithMetaAndResult(401, 0, 'Unauthenticated.', []);
-            }
-
-            if ($exception instanceof AuthorizationException) {
-                return Killa::responseErrorWithMetaAndResult(403, 0, 'Forbidden.', []);
-            }
-
-            if ($exception instanceof ThrottleRequestsException) {
-                return Killa::responseErrorWithMetaAndResult(429, 0, 'Too Many Requests.', []);
-            }
-
-            if ($exception instanceof HttpException) {
-                return Killa::responseErrorWithMetaAndResult($exception->getStatusCode(), 0, $exception->getMessage(), []);
-            }
-
-            if ($exception instanceof ModelNotFoundException) {
-                return Killa::responseErrorWithMetaAndResult(404, 0, 'Resource not found.', []);
-            }
-
-            if ($exception instanceof TokenMismatchException) {
-                return Killa::responseErrorWithMetaAndResult(419, 0, 'CSRF token mismatch.', []);
-            }
-
-            if ($exception instanceof FileException) {
-                return Killa::responseErrorWithMetaAndResult(500, 0, 'File handling error.', [$exception->getMessage()]);
-            }
-
-            // if ($exception instanceof FatalThrowableError) {
-            //     return Killa::responseErrorWithMetaAndResult(500, 0, 'A fatal error has occurred.', [$exception->getMessage()]);
-            // }
-
-            if ($exception instanceof ValidationException) {
-                // Flatten the error messages array
-                $errorMessages = implode(' ', array_map(function ($messages) {
-                    return implode(' ', $messages);
-                }, $exception->errors()));
-
-                // Log the response for debugging
-                Log::debug('Validation Error Response:', [
-                    'message' => $errorMessages,
-                    'errors' => $exception->errors(),
-                    'failed_rules' => $exception->validator->failed(),
-                    'input' => $exception->validator->getData()
-                ]);
-
-                return Killa::responseErrorWithMetaAndResult(422, 0, $errorMessages, [
-                    'errors' => $exception->errors(),
-                    'failed_rules' => $exception->validator->failed(),
-                    'input' => $exception->validator->getData()
-                ]);
-            }
-
-
-            if ($exception instanceof NotFoundHttpException) {
-                return Killa::responseErrorWithMetaAndResult(404, 0, '404 Not Found', [$exception->getMessage()]);
-            }
-
-            if ($exception instanceof MethodNotAllowedHttpException) {
-                return Killa::responseErrorWithMetaAndResult(405, 0, '405 Method Not Allowed', []);
-            }
-
-
-            if ($exception instanceof BindingResolutionException) {
-                return Killa::responseErrorWithMetaAndResult(405, 0, 'Binding Resolution Exception', [$exception->getMessage()]);
-            }
-
-            if ($exception instanceof QueryException) {
-                // Get the full error message from the exception
-                $errorMessage = $exception->getMessage();
-
-                return Killa::responseErrorWithMetaAndResult(422, 0, $errorMessage, [
-                    'error_details' => $exception->getMessage(), // Include the full error message in the meta
-                ]);
-            }
-            // return Killa::responseErrorWithMetaAndResult(500, 0, '500 An Error Has Occurred' + $exception, []);
+        if ($exception instanceof AuthenticationException) {
+            return Killa::responseErrorWithMetaAndResult(401, 0, 'Unauthenticated.', []);
         }
+
+        if ($exception instanceof AuthorizationException) {
+            return Killa::responseErrorWithMetaAndResult(403, 0, 'Forbidden.', []);
+        }
+
+        if ($exception instanceof ThrottleRequestsException) {
+            return Killa::responseErrorWithMetaAndResult(429, 0, 'Too Many Requests.', []);
+        }
+
+        if ($exception instanceof HttpException) {
+            return Killa::responseErrorWithMetaAndResult($exception->getStatusCode(), 0, $exception->getMessage(), []);
+        }
+
+        if ($exception instanceof ModelNotFoundException) {
+            return Killa::responseErrorWithMetaAndResult(404, 0, 'Resource not found.', []);
+        }
+
+        if ($exception instanceof TokenMismatchException) {
+            return Killa::responseErrorWithMetaAndResult(419, 0, 'CSRF token mismatch.', []);
+        }
+
+        if ($exception instanceof FileException) {
+            return Killa::responseErrorWithMetaAndResult(500, 0, 'File handling error.', [$exception->getMessage()]);
+        }
+
+        if ($exception instanceof ValidationException) {
+            // Flatten the error messages array
+            $errorMessages = implode(' ', array_map(function ($messages) {
+                return implode(' ', $messages);
+            }, $exception->errors()));
+
+            // Log the response for debugging
+            Log::debug('Validation Error Response:', [
+                'message' => $errorMessages,
+                'errors' => $exception->errors(),
+                'failed_rules' => $exception->validator->failed(),
+                'input' => $exception->validator->getData()
+            ]);
+
+            return Killa::responseErrorWithMetaAndResult(422, 0, $errorMessages, [
+                'errors' => $exception->errors(),
+                'failed_rules' => $exception->validator->failed(),
+                'input' => $exception->validator->getData()
+            ]);
+        }
+
+        if ($exception instanceof NotFoundHttpException) {
+            return Killa::responseErrorWithMetaAndResult(
+                404,
+                0,
+                $exception->getMessage() ?: '404 Not Found', // Ensure a non-empty message
+                []
+            );
+        }
+
+        if ($exception instanceof MethodNotAllowedHttpException) {
+            return Killa::responseErrorWithMetaAndResult(405, 0, '405 Method Not Allowed', []);
+        }
+
+
+        if ($exception instanceof BindingResolutionException) {
+            return Killa::responseErrorWithMetaAndResult(405, 0, 'Binding Resolution Exception', [$exception->getMessage()]);
+        }
+
+        if ($exception instanceof QueryException) {
+            // Get the full error message from the exception
+            $errorMessage = $exception->getMessage();
+
+            return Killa::responseErrorWithMetaAndResult(422, 0, $errorMessage, [
+                'error_details' => $exception->getMessage(), // Include the full error message in the meta
+            ]);
+        }
+        return Killa::responseErrorWithMetaAndResult(500, 0, '500 An Error Has Occurred' + $exception, []);
 
         return parent::render($request, $exception);
     }
