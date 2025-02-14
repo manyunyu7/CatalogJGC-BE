@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\ManageProductController;
+use App\Http\Controllers\ManageProductDetailController;
 use App\Http\Controllers\MyMainProfileController;
 use App\Http\Controllers\MyProfileSliderController;
 use App\Http\Controllers\ProductDetailController;
@@ -78,6 +79,12 @@ Route::prefix('cms-user')->middleware('auth:sanctum')->group(function () {
         Route::any('/{id}', [App\Http\Controllers\ProductImageController::class, 'destroy']); // Delete image
         Route::get('/', [App\Http\Controllers\ProductImageController::class, 'getAll']); // Delete image
         Route::post('/reorder', [App\Http\Controllers\ProductImageController::class, 'reorderImages']); // Reorder images
+    });
+
+    Route::prefix('manage-product-details')->group(function () {
+        Route::get('/{parent_id}', [App\Http\Controllers\ManageProductDetailController::class, 'index']); // Get product details by parent_id
+        Route::post('/{parent_id}', [App\Http\Controllers\ManageProductDetailController::class, 'storeOrUpdate']); // Create or update product detail by parent_id
+        Route::delete('/{parent_id}', [App\Http\Controllers\ManageProductDetailController::class, 'destroy']); // Delete product detail by parent_id
     });
 });
 
