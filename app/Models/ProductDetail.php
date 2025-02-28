@@ -13,7 +13,7 @@ class ProductDetail extends Model
     // Disable timestamps auto management (if you want full control)
     // public $timestamps = true;
 
-    protected $fillable = ['floor', 'electricity', 'description','created_by','updated_by'];
+    protected $fillable = ['floor', 'electricity', 'description','created_by','updated_by','map_embed_code'];
 
     // Define model events
     protected static function booted()
