@@ -10,4 +10,15 @@ class ProductPrice extends Model
     use HasFactory;
 
     protected $fillable = ["*"];
+    protected $appends = ['formatted_price', 'price_with_prefix'];
+
+    public function getPriceWithPrefixAttribute()
+    {
+        return "{$this->prefix} " . $this->formatted_price;
+    }
+
+    public function getFormattedPriceAttribute()
+    {
+        return number_format($this->price, 2, ',', '.');
+    }
 }
