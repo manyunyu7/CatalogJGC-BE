@@ -16,6 +16,7 @@ class CreateProductDetailsTable extends Migration
         Schema::create('product_details', function (Blueprint $table) {
             $table->id();
             $table->text('parent_id')->nullable();
+            $table->longText('map_embed_code')->nullable();
             $table->string('floor')->nullable();
             $table->string('electricity')->nullable();
             $table->text('description')->nullable(); // Description of the facility

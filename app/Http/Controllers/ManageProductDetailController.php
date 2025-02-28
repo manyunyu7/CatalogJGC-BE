@@ -27,6 +27,7 @@ class ManageProductDetailController extends Controller
         // Validate input
         $validator = Validator::make($request->all(), [
             'floor' => 'nullable|string|max:255',
+            // 'map_embed_code' => ['nullable', 'regex:/^<iframe.*src="https?:\/\/[a-zA-Z0-9.-]+[a-zA-Z]{2,}.*"[^>]*><\/iframe>$/'],
             'electricity' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
         ]);
@@ -36,7 +37,7 @@ class ManageProductDetailController extends Controller
                 422,
                 422,
                 'Validation errors occurred',
-                $validator->errors()
+                ['validation_errors' => $validator->errors()] // Add custom key 'validation_errors' before errors
             );
         }
 
@@ -50,7 +51,21 @@ class ManageProductDetailController extends Controller
             }
 
             // Update fields
-            $productDetail->fill($request->only(['floor', 'electricity', 'description']));
+            $productDetail->fill($request->only(['floor', 'electricity', 'description', 'map_embed_code']));
+
+            // Manipulate the map_embed_code to add the proper styles
+            if ($request->has('map_embed_code')) {
+                $mapEmbedCode = $request->input('map_embed_code');
+
+                // Add the classes 'w-full h-full rounded-xl' to the iframe
+                // Ensure this is a valid iframe
+                if (preg_match('/<iframe[^>]+>/', $mapEmbedCode)) {
+                    $mapEmbedCode = preg_replace('/<iframe(.*)>/', '<iframe class="w-full h-full rounded-xl" $1></iframe>', $mapEmbedCode);
+                }
+
+                // Set the manipulated code
+                $productDetail->map_embed_code = $mapEmbedCode;
+            }
 
             // Save the record
             if ($productDetail->save()) {
@@ -67,6 +82,7 @@ class ManageProductDetailController extends Controller
             return Killa::responseErrorWithMetaAndResult(500, 500, 'An error occurred', ['error' => $e->getMessage()]);
         }
     }
+
 
     // Delete a product detail by parent_id
     public function destroy($parent_id)
