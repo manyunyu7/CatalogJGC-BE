@@ -26,10 +26,6 @@ Route::view('/profile/home2', 'profile/home8');
 Route::view('/profile/home3', 'profile/home3');
 
 
-//TODO : FLOOR BJIR
-Route::view('/profile/home3', 'profile/home3');
-
-
 Route::get('s3/image-upload', [ LaravelEstriController::class, 'imageUpload' ])->name('image.upload');
 Route::post('s3/image-upload', [ LaravelEstriController::class, 'imageUploadPost' ])->name('image.upload.post');
 

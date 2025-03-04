@@ -1,14 +1,11 @@
 <?php
 
 use App\Http\Controllers\Auth\AuthController;
-use App\Http\Controllers\ManageProductController;
-use App\Http\Controllers\ManageProductDetailController;
 use App\Http\Controllers\MyMainProfileController;
 use App\Http\Controllers\MyProfileSliderController;
 use App\Http\Controllers\ProductDetailController;
 use App\Http\Controllers\ProductPriceController;
 use App\Http\Controllers\StaffController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -66,6 +63,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('fasilitas-transactions/bulk-update', [App\Http\Controllers\FasilitasTransactionController::class, 'bulkUpdate']);
 });
 
+Route::prefix('cms-user/product-images')->group(function(){
+    Route::get('/', [App\Http\Controllers\ProductImageController::class, 'getAll']); // Delete image
+});
+
 Route::prefix('cms-user')->middleware('auth:sanctum')->group(function () {
     Route::get('manage', [StaffController::class, 'viewAdminManage'])->name('cms-user.manage');
     Route::get('edit/{id}', [StaffController::class, 'viewAdminEdit'])->name('cms-user.edit');
@@ -77,7 +78,6 @@ Route::prefix('cms-user')->middleware('auth:sanctum')->group(function () {
     Route::prefix('product-images')->group(function () {
         Route::post('/{parentId}', [App\Http\Controllers\ProductImageController::class, 'store']); // Upload images
         Route::any('/{id}', [App\Http\Controllers\ProductImageController::class, 'destroy']); // Delete image
-        Route::get('/', [App\Http\Controllers\ProductImageController::class, 'getAll']); // Delete image
         Route::post('/reorder', [App\Http\Controllers\ProductImageController::class, 'reorderImages']); // Reorder images
     });
 
@@ -96,6 +96,8 @@ Route::prefix('slider')->middleware('auth:sanctum')->group(function () {
     Route::post('update', [MyProfileSliderController::class, 'update']);
     Route::delete('destroy/{id}', [MyProfileSliderController::class, 'destroy']);
 });
+
+Route::get('slider/all', [MyProfileSliderController::class, 'manageSlider']);
 
 
 Route::post('auth/register', 'CustomAuthController@register');

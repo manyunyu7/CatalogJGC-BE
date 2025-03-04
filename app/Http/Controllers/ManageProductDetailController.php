@@ -30,6 +30,10 @@ class ManageProductDetailController extends Controller
             // 'map_embed_code' => ['nullable', 'regex:/^<iframe.*src="https?:\/\/[a-zA-Z0-9.-]+[a-zA-Z]{2,}.*"[^>]*><\/iframe>$/'],
             'electricity' => 'nullable|string|max:255',
             'description' => 'nullable|string|max:1000',
+            'land_length' => 'nullable|int',
+            'land_width' => 'nullable|int',
+            'building_length' => 'nullable|int',
+            'building_width' => 'nullable|int',
         ]);
 
         if ($validator->fails()) {
@@ -51,7 +55,17 @@ class ManageProductDetailController extends Controller
             }
 
             // Update fields
-            $productDetail->fill($request->only(['floor', 'electricity', 'description', 'map_embed_code']));
+            $productDetail->fill($request->only([
+                'floor',
+                'electricity',
+                'description',
+                'map_embed_code',
+                'land_length',
+                'land_width',
+                'building_length',
+                'building_width'
+            ]));
+
 
             // Manipulate the map_embed_code to add the proper styles
             if ($request->has('map_embed_code')) {

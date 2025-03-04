@@ -13,7 +13,18 @@ class ProductDetail extends Model
     // Disable timestamps auto management (if you want full control)
     // public $timestamps = true;
 
-    protected $fillable = ['floor', 'electricity', 'description','created_by','updated_by','map_embed_code'];
+    protected $fillable = [
+        'floor',
+        'electricity',
+        'description',
+        'created_by',
+        'updated_by',
+        'map_embed_code',
+        'land_length',
+        'land_width',
+        'building_length',
+        'building_width',
+    ];
 
     // Define model events
     protected static function booted()
@@ -27,5 +38,30 @@ class ProductDetail extends Model
             // Automatically set the 'updated_by' when updating an existing record
             $productDetail->updated_by = Auth::id(); // Get the logged-in user's ID
         });
+    }
+
+    public function getFloorAttribute($value)
+    {
+        return intval($value);
+    }
+
+    public function getLandLengthAttribute($value)
+    {
+        return intval($value);
+    }
+
+    public function getLandWidthAttribute($value)
+    {
+        return intval($value);
+    }
+
+    public function getBuildingLengthAttribute($value)
+    {
+        return intval($value);
+    }
+
+    public function getBuildingWidthAttribute($value)
+    {
+        return intval($value);
     }
 }
